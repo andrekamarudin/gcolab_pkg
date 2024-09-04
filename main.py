@@ -1,12 +1,22 @@
-from google.cloud import bigquery
-from google.colab import auth
-import pandas as pd
-from IPython.display import display
+import json
 import re
 import time
 
+import pandas as pd
+import requests
+from google.cloud import bigquery
+from google.colab import auth
+from IPython.display import display
+
 
 def connect_bq(pjid_new=None):
+    """
+    Authenticate the user and set the project ID for BigQuery.
+
+    :param pjid_new: The new project ID to authenticate.
+
+    :return: None
+    """
     global pjid
 
     auth.authenticate_user()
@@ -17,6 +27,13 @@ def connect_bq(pjid_new=None):
 
 
 def q(query):
+    """
+    Execute a BigQuery query and return the result as a DataFrame.
+
+    :param query: The BigQuery query to execute.
+
+    :return: The result of the BigQuery query as a DataFrame.
+    """
     result = bigquery.Client(project=pjid).query(query)
     print(f"Job ID: {result.job_id}")
     start_time, minutes, seconds = time.time() + 28800, 0, 0
@@ -55,10 +72,15 @@ def q(query):
         return result.to_dataframe()
 
 
-def send_gchat(message, webhook):
-    import json
-    import requests
+def send_gchat(message: str, webhook: str) -> str:
+    """
+    Send a message to a Google Chat webhook.
 
+    :param message: The message to send.
+    :param webhook: The URL of the Google Chat webhook.
+
+    :return: The response from the Google Chat webhook.
+    """
     headers = {"Content-Type": "application/json; charset=UTF-8"}
     data = json.dumps({"text": message})
     response = requests.post(webhook, headers=headers, data=data)
