@@ -1,6 +1,8 @@
 import json
+import os
 import re
 import time
+from typing import Optional
 
 import pandas as pd
 import requests
@@ -72,16 +74,24 @@ def q(query):
         return result.to_dataframe()
 
 
-def send_gchat(message: str, webhook: str) -> str:
+def send_gchat(
+    message: str,
+    webhook: str,
+    footer: Optional[str] = None,
+) -> str:
     """
     Send a message to a Google Chat webhook.
 
     :param message: The message to send.
     :param webhook: The URL of the Google Chat webhook.
+    :param footer: The footer to add to the message.
 
     :return: The response from the Google Chat webhook.
     """
     headers = {"Content-Type": "application/json; charset=UTF-8"}
+    if footer is None:
+        footer = f"Sent by {os.getlogin()} on {time.strftime('%Y-%m-%d %H:%M')}"
+    message = f"{message}\n\n{footer}"
     data = json.dumps({"text": message})
     response = requests.post(webhook, headers=headers, data=data)
     if response.status_code == 400:
