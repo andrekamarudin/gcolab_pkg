@@ -53,3 +53,15 @@ def q(query):
         print(f"\x1b[92mDestination: {destination}\x1b[0m")
         print(f"\x1b[93m{result.dml_stats}\x1b[0m") if result.dml_stats else None
         return result.to_dataframe()
+
+
+def send_gchat(message, webhook):
+    import json
+    import requests
+
+    headers = {"Content-Type": "application/json; charset=UTF-8"}
+    data = json.dumps({"text": message})
+    response = requests.post(webhook, headers=headers, data=data)
+    if response.status_code == 400:
+        raise Exception(f"Error sending message: {response.text}")
+    return response.text
