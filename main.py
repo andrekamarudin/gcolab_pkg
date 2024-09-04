@@ -1,6 +1,6 @@
 import json
-import os
 import re
+import subprocess
 import time
 from typing import Optional
 
@@ -90,10 +90,24 @@ def send_gchat(
     """
     headers = {"Content-Type": "application/json; charset=UTF-8"}
     if footer is None:
-        footer = f"Sent by {os.getlogin()} on {time.strftime('%Y-%m-%d %H:%M')}"
+        footer = f"Sent by {get_user_email()} on {time.strftime('%Y-%m-%d %H:%M')}"
     message = f"{message}\n\n{footer}"
     data = json.dumps({"text": message})
     response = requests.post(webhook, headers=headers, data=data)
     if response.status_code == 400:
         raise Exception(f"Error sending message: {response.text}")
     return response.text
+
+
+def get_user_email():
+    """
+    Get the email of the user.
+
+    :return: The email of the user.
+    """
+    shell_command = "gcloud auth print-access-token"
+    gcloud_token = subprocess.check_output(shell_command, shell=True).decode().strip()
+    gcloud_tokeninfo = requests.get(
+        "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=" + gcloud_token
+    ).json()
+    return gcloud_tokeninfo["email"]
