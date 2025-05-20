@@ -25,7 +25,7 @@ def connect_bq(pjid_new=None):
     global pjid
 
     auth.authenticate_user()
-    message = f"""pjid: {pjid_new} authenticated at: {pd.Timestamp.now('Singapore').strftime('%Y-%m-%d %H:%M')}"""
+    message = f"""pjid: {pjid_new} authenticated at: {pd.Timestamp.now("Singapore").strftime("%Y-%m-%d %H:%M")}"""
     cprint(message, color=Fore.GREEN, style=Style.BRIGHT)
     pjid = pjid_new
 
@@ -65,9 +65,9 @@ def q(query):
             for i, line in enumerate(query.split("\n")):
                 if i + 1 >= ln - 5 and i + 1 < ln + 6:  # if i+1 in range(ln-5,ln+6):
                     cprint(
-                        f"{i+1}: {line[:pn-1]}\x1b[31m{line[pn-1:]}\x1b[0m"
+                        f"{i + 1}: {line[: pn - 1]}\x1b[31m{line[pn - 1 :]}\x1b[0m"
                         if i + 1 == ln
-                        else f"{i+1}: {line}",
+                        else f"{i + 1}: {line}",
                         color=Fore.RED,
                         style=Style.BRIGHT,
                     )
