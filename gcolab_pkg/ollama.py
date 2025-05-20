@@ -1,6 +1,5 @@
 import os
 import requests 
-from icecream import ic
 
 def setup_gpu(models = "llama3.1"):
     # @title get ollama 
