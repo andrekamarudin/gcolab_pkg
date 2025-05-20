@@ -18,9 +18,9 @@ def setup_ollama(models = "llama3.1"):
     
 
 def setup_bq():
-    GITHUB_KEY = os.getenv('GITHUB_KEY')
-    !pip install -q git+https://{GITHUB_KEY}@github.com/andrekamarudin/google_pkg.git 
     from google.colab import userdata
+    GITHUB_KEY = userdata.get('GITHUB_KEY')
+    !pip install -q git+https://{GITHUB_KEY}@github.com/andrekamarudin/google_pkg.git 
     import json
     from google_api.packages.gservice import ServiceKey
     from google_api.bigquery import BigQuery
