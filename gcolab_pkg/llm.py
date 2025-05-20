@@ -50,6 +50,7 @@ def setup_ollama(models="llama3.1"):
     # 2) pull your models
     subprocess.run(f"echo {models} | xargs -n1 -P3 ollama pull", shell=True, check=True)
     subprocess.run("ollama list", shell=True, check=True)
+    subprocess.run("pip install -q ollama", shell=True, check=True)
 
 
 def main():
