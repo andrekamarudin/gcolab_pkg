@@ -1,1 +1,0 @@
-from gcolab import ollama
