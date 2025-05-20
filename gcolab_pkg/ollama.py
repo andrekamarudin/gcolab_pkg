@@ -1,53 +1,74 @@
 import os
-import requests 
+import subprocess
+import time
 
-def setup_gpu(models = "llama3.1"):
-    # @title get ollama 
-    !curl -fsSL https://ollama.com/install.sh | sh
-    !nvidia-smi && sudo apt-get update && sudo apt-get install -y pciutils
-    
-    os.environ['LD_LIBRARY_PATH'] = '/usr/lib64-nvidia'
-def setup_ollama(models = "llama3.1"):
-    !ollama serve > ollama.log 2>&1 & sleep 5
-    !cat ollama.log
-    !echo {models} | xargs -n1 -P3 ollama pull
-    !ollama list
-    !pip install -q ollama
-    
-    
+import requests
+
+
+def setup_gpu():
+    subprocess.run(
+        "curl -fsSL https://ollama.com/install.sh | sh", shell=True, check=True
+    )
+    subprocess.run(
+        "nvidia-smi && sudo apt-get update && sudo apt-get install -y pciutils",
+        shell=True,
+        check=True,
+    )
+
+
+def setup_ollama(models="llama3.1"):
+    proc = subprocess.Popen("ollama serve > ollama.log 2>&1", shell=True)
+    time.sleep(5)
+    with open("ollama.log") as log:
+        print(log.read())
+    subprocess.run(f"echo {models} | xargs -n1 -P3 ollama pull", shell=True, check=True)
+    subprocess.run("ollama list", shell=True, check=True)
+    subprocess.run(["pip", "install", "-q", "ollama"], check=True)
+
 
 def setup_bq():
     from google.colab import userdata
-    GITHUB_KEY = userdata.get('GITHUB_KEY')
-    !pip install -q git+https://{GITHUB_KEY}@github.com/andrekamarudin/google_pkg.git 
-    import json
-    from google_api.packages.gservice import ServiceKey
-    from google_api.bigquery import BigQuery
-    bq = BigQuery(
-        project='fairprice-bigquery', 
-        service_key=ServiceKey(**json.loads(userdata.get('DBDA_GOOGLE_APPLICATION_CREDENTIALS')))
+
+    GITHUB_KEY = userdata.get("GITHUB_KEY")
+    subprocess.run(
+        f"pip install -q git+https://{GITHUB_KEY}@github.com/andrekamarudin/google_pkg.git",
+        shell=True,
+        check=True,
     )
-    %load_ext google.colab.data_table
+    import json
+
+    from google_api.bigquery import BigQuery
+    from google_api.packages.gservice import ServiceKey
+
+    bq = BigQuery(
+        project="fairprice-bigquery",
+        service_key=ServiceKey(
+            **json.loads(userdata.get("DBDA_GOOGLE_APPLICATION_CREDENTIALS"))
+        ),
+    )
+    # IPython magic %load_ext not supported in scripts; enable data table extension in notebook if needed
     bq.q("Select 1")
+
 
 def main():
     setup_gpu()
     setup_ollama()
     import ollama
+
     response = ollama.chat(
-        model='llama3.1',
+        model="llama3.1",
         messages=[
             {
-                'role': 'user',
-                'content': 'Explain the concept of a large language model in simple terms.',
+                "role": "user",
+                "content": "Explain the concept of a large language model in simple terms.",
             },
-        ]
+        ],
     )
-    print(response['message']['content'])
-    
+    print(response["message"]["content"])
+
+
 if __name__ == "__main__":
     main()
-
 
 
 def working_tool_call():
@@ -61,45 +82,41 @@ def working_tool_call():
             return f"Error: {response.status_code}"
 
     messages = [
-        {'role': 'user', 'content': 'What is the capital of China? I need the weather.'}
+        {"role": "user", "content": "What is the capital of China? I need the weather."}
     ]
 
     response = ollama.chat(
-        model='llama3.1',
+        model="llama3.1",
         messages=messages,
         tools=[get_weather],
     )
 
-    messages.append({
-        'role': 'assistant', 
-        'content': response['message']['content'] or str(response['message']['tool_calls']),
-    })
+    messages.append(
+        {
+            "role": "assistant",
+            "content": response["message"]["content"]
+            or str(response["message"]["tool_calls"]),
+        }
+    )
 
-    if response['message'].tool_calls:
-        for call in response['message'].tool_calls:
+    if response["message"].tool_calls:
+        for call in response["message"].tool_calls:
             name = call.function.name
             args = call.function.arguments
 
-            if name == 'get_weather':
+            if name == "get_weather":
                 result = get_weather(**args)
-                messages.append({
-                    'role': 'tool',
-                    'name': name,
-                    'content': result
-                })
+                messages.append({"role": "tool", "name": name, "content": result})
 
             else:
                 raise ValueError(f"Unknown tool requested: {name}")
 
         followup = ollama.chat(
-            model='llama3.1',
+            model="llama3.1",
             messages=messages,
             tools=[get_weather],
         )
-        messages.append({
-            'role': 'assistant',
-            'content': followup['message']
-        })
+        messages.append({"role": "assistant", "content": followup["message"]})
 
     # 6. Print out the entire thread
     for msg in messages:
