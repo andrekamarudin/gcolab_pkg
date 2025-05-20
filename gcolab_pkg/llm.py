@@ -55,9 +55,9 @@ def setup_ollama(models="llama3.1"):
 def main():
     setup_gpu()
     setup_ollama()
-    import ollama
+    import gcolab_pkg.llm as llm
 
-    response = ollama.chat(
+    response = llm.chat(
         model="llama3.1",
         messages=[
             {
