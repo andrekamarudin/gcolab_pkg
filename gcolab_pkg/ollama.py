@@ -1,4 +1,3 @@
-import os
 import subprocess
 import time
 
@@ -14,16 +13,6 @@ def setup_gpu():
         shell=True,
         check=True,
     )
-
-
-def setup_ollama(models="llama3.1"):
-    proc = subprocess.Popen("ollama serve > ollama.log 2>&1", shell=True)
-    time.sleep(5)
-    with open("ollama.log") as log:
-        print(log.read())
-    subprocess.run(f"echo {models} | xargs -n1 -P3 ollama pull", shell=True, check=True)
-    subprocess.run("ollama list", shell=True, check=True)
-    subprocess.run(["pip", "install", "-q", "ollama"], check=True)
 
 
 def setup_bq():
@@ -48,6 +37,19 @@ def setup_bq():
     )
     # IPython magic %load_ext not supported in scripts; enable data table extension in notebook if needed
     bq.q("Select 1")
+
+
+def setup_ollama(models="llama3.1"):
+    # 1) start the server once
+    proc = subprocess.Popen(
+        ["ollama", "serve"],
+        stdout=open("ollama.log", "w"),
+        stderr=subprocess.STDOUT,
+    )
+    time.sleep(5)  # or better: poll the HTTP health endpoint
+    # 2) pull your models
+    subprocess.run(f"echo {models} | xargs -n1 -P3 ollama pull", shell=True, check=True)
+    subprocess.run("ollama list", shell=True, check=True)
 
 
 def main():
